@@ -28,6 +28,4 @@ public class CMServerApp {
         cmStub.setAppEventHandler(server.getServerEventHandler());
         cmStub.startCM();
     }
-
-
 }

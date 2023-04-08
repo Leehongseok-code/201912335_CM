@@ -18,6 +18,8 @@ public class CMClientEventHandler implements CMAppEventHandler {
             case CMInfo.CM_SESSION_EVENT:
                 processSessionEvent(cme);
                 break;
+            case CMInfo.CM_DATA_EVENT:
+                processDataEvent(cme);
             default:
                 return;
         }
@@ -28,11 +30,41 @@ public class CMClientEventHandler implements CMAppEventHandler {
         CMSessionEvent se = (CMSessionEvent) cme;
         switch(se.getID())
         {
-            case CMSessionEvent.LOGIN:
-                System.out.println("["+se.getUserName()+"] requests login." );
+            case CMSessionEvent.LOGIN_ACK:
+                if(se.isValidUser() == 0)
+                {
+                    System.err.println("This client fails authentication by the default server!");
+                }
+                else if(se.isValidUser() == -1)
+                {
+                    System.err.println("This client is already in the login-user list!");
+                }
+                else
+                {
+                    System.out.println("This client successfully logs in to the default server.");
+                }
                 break;
             default:
                 return;
         }
     }
+
+    private void processDataEvent(CMEvent cme)
+    {
+        CMDataEvent de = (CMDataEvent) cme;
+        switch(de.getID())
+        {
+            case CMDataEvent.NEW_USER:
+                System.out.println("["+de.getUserName()+"] enters group("+de.getHandlerGroup()+") in session("
+                        +de.getHandlerSession()+").");
+                break;
+            case CMDataEvent.REMOVE_USER:
+                System.out.println("["+de.getUserName()+"] leaves group("+de.getHandlerGroup()+") in session("
+                        +de.getHandlerSession()+").");
+                break;
+            default:
+                return;
+        }
+    }
+
 }
