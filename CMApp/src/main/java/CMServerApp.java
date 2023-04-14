@@ -1,6 +1,9 @@
 import kr.ac.konkuk.ccslab.cm.event.*;
 import kr.ac.konkuk.ccslab.cm.info.*;
 import kr.ac.konkuk.ccslab.cm.stub.*;
+import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class CMServerApp {
     private CMServerStub m_serverStub;
@@ -23,9 +26,17 @@ public class CMServerApp {
 
     public static void main(String[] args)
     {
+
         CMServerApp server = new CMServerApp();
         CMServerStub cmStub = server.getServerStub();
         cmStub.setAppEventHandler(server.getServerEventHandler());
+
+
+        // set config home
+        cmStub.setConfigurationHome(Paths.get("."));
+        // set file-path home
+        cmStub.setTransferedFileHome(cmStub.getConfigurationHome().resolve("server-file-path"));
+
         cmStub.startCM();
     }
 }
