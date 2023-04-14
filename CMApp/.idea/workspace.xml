@@ -4,14 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0ea75927-325f-4cdc-b02c-a1ea0fd9ebd2" name="Changes" comment="">
+    <list default="true" id="0ea75927-325f-4cdc-b02c-a1ea0fd9ebd2" name="Changes" comment="4/9 commit">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cm-client.conf" beforeDir="false" afterPath="$PROJECT_DIR$/cm-client.conf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cm-server.conf" beforeDir="false" afterPath="$PROJECT_DIR$/cm-server.conf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/CMClientApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/CMClientApp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/CMClientEventHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/CMClientEventHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/CMServerApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/CMServerApp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/CMServerEventHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/CMServerEventHandler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -132,7 +126,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680986575898</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="4/9 commit">
+      <created>1681493465693</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1681493465693</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
