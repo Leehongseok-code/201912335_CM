@@ -60,7 +60,7 @@ public class CMClientApp {
             e.printStackTrace();
         }
 
-        bRequestResult = m_clientStub.loginCM(strUserName, strPassword);
+        bRequestResult = m_clientStub.loginCM(strUserName, strPassword); //입력받은 아이디, 비밀번호로 default서버에 로그인한다.
         if(bRequestResult)
             System.out.println("successfully sent the login request.");
         else

@@ -19,19 +19,13 @@ public class CMServerEventHandler implements CMAppEventHandler {
 
     public void processEvent(CMEvent cme)
     {
-        switch(cme.getType())
-        {
-            case CMInfo.CM_SESSION_EVENT:
-                processSessionEvent(cme);
-                break;
-            case CMInfo.CM_INTEREST_EVENT:
-                processInterestEvent(cme);
-                break;
-            case CMInfo.CM_FILE_EVENT:
-                processFileEvent(cme);
-                break;
-            default:
+        switch (cme.getType()) {
+            case CMInfo.CM_SESSION_EVENT -> processSessionEvent(cme);
+            case CMInfo.CM_INTEREST_EVENT -> processInterestEvent(cme);
+            case CMInfo.CM_FILE_EVENT -> processFileEvent(cme);
+            default -> {
                 return;
+            }
         }
     }
 
