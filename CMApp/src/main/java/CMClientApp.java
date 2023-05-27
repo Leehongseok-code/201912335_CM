@@ -3,6 +3,7 @@ import kr.ac.konkuk.ccslab.cm.event.handler.CMAppEventHandler;
 import kr.ac.konkuk.ccslab.cm.info.*;
 import kr.ac.konkuk.ccslab.cm.stub.*;
 
+import java.io.File;
 import java.io.BufferedReader;
 import java.io.Console;
 import java.io.IOException;
@@ -224,6 +225,58 @@ public class CMClientApp {
         return;
     }
 
+    public void Synchronization()
+    {
+        boolean bReturn = false;
+        String[] strFiles = null;
+        String strFileList = null;
+        int nFileNum = -1;
+        String strTarget = null;
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.println("====== Synchronize files");
+        try {
+            System.out.print("Input receiver name(empty for default): ");
+            strTarget = br.readLine();
+            if(strTarget.isEmpty())
+                strTarget = m_clientStub.getDefaultServerName();
+
+            System.out.print("Path to synchronize");
+            strFileList = br.readLine();//전송할 파일 목록
+
+            File dir = new File(strFileList);
+            String[] filenames = dir.list();
+
+            System.out.print("Number of files: ");
+            nFileNum = Integer.parseInt(br.readLine());
+
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            return;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        strFileList.trim();
+        strFiles = strFileList.split("\\s+");
+        if(strFiles.length != nFileNum)
+        {
+            System.out.println("The number of files incorrect!");
+            return;
+        }
+
+        for(int i = 0; i < nFileNum; i++)
+        {
+            bReturn = CMFileTransferManager.pushFile(strFiles[i], strTarget, m_clientStub.getCMInfo());
+            if(!bReturn)
+                System.err.println("Request file error! file("+strFiles[i]+"), owner("+strTarget+").");
+            else
+                System.out.println(Integer.toString(i + 1) + "/" + Integer.toString(nFileNum) + " success");
+        }
+
+        System.out.println("======");
+        return;
+    }
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -292,6 +345,8 @@ public class CMClientApp {
                 case 104: // pull or push multiple files
                     client.SendMultipleFiles();
                     break;
+                case 105: //이상 탐지
+
                 default:
                     System.err.println("Unknown command.");
                     break;
