@@ -4,6 +4,7 @@ import kr.ac.konkuk.ccslab.cm.stub.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import kr.ac.konkuk.ccslab.cm.event.CMDummyEvent;
 
 public class CMServerApp {
     private CMServerStub m_serverStub;

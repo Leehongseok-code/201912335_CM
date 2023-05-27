@@ -1,5 +1,8 @@
 import java.io.*;
-
+import java.io.File;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 import kr.ac.konkuk.ccslab.cm.event.*;
 import kr.ac.konkuk.ccslab.cm.event.handler.CMAppEventHandler;
 import kr.ac.konkuk.ccslab.cm.info.*;
@@ -23,6 +26,12 @@ public class CMServerEventHandler implements CMAppEventHandler {
             case CMInfo.CM_SESSION_EVENT -> processSessionEvent(cme);
             case CMInfo.CM_INTEREST_EVENT -> processInterestEvent(cme);
             case CMInfo.CM_FILE_EVENT -> processFileEvent(cme);
+            case CMInfo.CM_DUMMY_EVENT -> {
+                if(cme.getID() == 105)
+                    processSyncEvent(cme);
+                else if(cme.getID() == 106)
+                    processShareEvent(cme);
+            }
             default -> {
                 return;
             }
@@ -227,6 +236,77 @@ public class CMServerEventHandler implements CMAppEventHandler {
         CMFileTransferManager.pushFile(strModifiedFile, strSender, m_serverStub.getCMInfo());
 
         return;
+    }
+
+    private void processSyncEvent(CMEvent cme)
+    {
+        CMDummyEvent due = (CMDummyEvent) cme;
+        String sender = due.getSender();
+
+        String[] strServerFiles = null;
+        String[] absServerFiles = null;
+        String fileServerDir = null;
+        String strServerFileList = null;
+        int nServerFileNum = -1;
+
+
+        fileServerDir = "./server-file-path/" + sender;
+        //서버의 디렉토리에 있는 파일 리스트 불러오기
+        File serverDir = new File(fileServerDir);
+        strServerFiles = serverDir.list();
+
+        nServerFileNum = strServerFiles.length;
+
+
+        //클라이언트에서 받은 파일 리스트 쪼개서 불러오기
+        String strClientFileList = null;
+        String[] strClientFiles = null;
+        int nClienFiletNum = -1;
+
+        strClientFileList = due.getDummyInfo();
+        strClientFileList.trim();
+        strClientFiles = strClientFileList.split(" ");
+
+
+        List<String> strClientList = new ArrayList<>(Arrays.asList(strClientFiles));
+        for(int i = 0; i < nServerFileNum; i++)
+        {
+            if(strClientList.contains(strServerFiles[i])==false)
+            {
+                String absServerFile = fileServerDir + "/" + strServerFiles[i];
+                System.out.println("delete: " + absServerFile);
+                File file = new File(absServerFile);
+                file.delete();
+            }
+        }
+
+        //due.setDummyInfo("dummy~");
+        //m_serverStub.send(due,m_serverStub.getDefaultServerName());
+        return ;
+    }
+
+    private void processShareEvent(CMEvent cme)
+    {
+        String fileName = null;
+        String strTarget = null;
+        String strFile = null;
+
+        CMDummyEvent due = (CMDummyEvent) cme;
+        String sender = due.getSender();
+        System.out.println(due.getDummyInfo());
+        String[] commands = due.getDummyInfo().split(" ");
+        fileName = commands[0];
+        strTarget = commands[1];
+
+        strFile = "./server-file-path/" + sender + "/" + fileName;//
+
+        boolean bReturn = false;
+        bReturn = CMFileTransferManager.pushFile(strFile, strTarget, m_serverStub.getCMInfo());
+        if(!bReturn)
+            System.err.println("Request file error!");
+        else
+            System.out.println("file success");
+        return ;
     }
 
 }

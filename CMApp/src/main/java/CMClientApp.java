@@ -12,6 +12,7 @@ import java.util.Scanner;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import kr.ac.konkuk.ccslab.cm.manager.*;
+import kr.ac.konkuk.ccslab.cm.event.CMDummyEvent;
 
 
 public class CMClientApp {
@@ -229,6 +230,9 @@ public class CMClientApp {
     {
         boolean bReturn = false;
         String[] strFiles = null;
+        String[] absFiles = null;
+
+        String fileDir = null;
         String strFileList = null;
         int nFileNum = -1;
         String strTarget = null;
@@ -240,14 +244,84 @@ public class CMClientApp {
             if(strTarget.isEmpty())
                 strTarget = m_clientStub.getDefaultServerName();
 
-            System.out.print("Path to synchronize");
-            strFileList = br.readLine();//전송할 파일 목록
+            System.out.print("Path to synchronize: ");
+            fileDir = br.readLine();//전송할 루트 폴더
 
-            File dir = new File(strFileList);
-            String[] filenames = dir.list();
+            File dir = new File(fileDir);
+            strFiles = dir.list();
+            absFiles = strFiles.clone();//절대경로 저장할 리스트를 따로 분리
+            nFileNum = strFiles.length;
+
+            for(int i = 0; i < nFileNum; i++)
+            {
+                absFiles[i] = fileDir + '/' + strFiles[i];
+                System.out.println(strFiles[i]);
+            }
+
+            System.out.println("Number of files: " + nFileNum);
+
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            return;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        /*
+        strFileList.trim();
+        strFiles = strFileList.split("\\s+");
+        */
+
+        if(strFiles.length != nFileNum)
+        {
+            System.out.println("The number of files incorrect!");
+            return;
+        }
+
+        for(int i = 0; i < nFileNum; i++)
+        {
+            bReturn = CMFileTransferManager.pushFile(absFiles[i], strTarget, m_clientStub.getCMInfo());
+            if(!bReturn)
+                System.err.println("Request file error! file("+strFiles[i]+"), owner("+strTarget+").");
+            else
+                System.out.println(Integer.toString(i + 1) + "/" + Integer.toString(nFileNum) + " success");
+        }
+
+        System.out.println("======");
+
+        CMDummyEvent due = new CMDummyEvent();
+        due.setID(105);
+        due.setDummyInfo(String.join(" ", strFiles));
+        m_clientStub.send(due,m_clientStub.getDefaultServerName());
+        return;
+    }
+
+    public void ShareMultipleFiles()
+    {
+        boolean bReturn = false;
+        String[] strFiles = null;
+        String strFileList = null;
+        int nFileNum = -1;
+        String strTarget = null;//어차피 Server로 고정
+        String strReceiver = null;//실제로 Server거쳐 받게 될 Client
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.println("====== pull/push multiple files");
+        try {
+            System.out.print("Input receiver name: ");
+            strTarget = m_clientStub.getDefaultServerName();//strTarget은 Server로 고정
+            strReceiver = br.readLine();
+
+            if(strReceiver.isEmpty())
+            {
+                System.err.println("Receiver is empty");
+                return ;
+            }
 
             System.out.print("Number of files: ");
             nFileNum = Integer.parseInt(br.readLine());
+            System.out.print("Input file names separated with space: ");
+            strFileList = br.readLine();
 
         } catch (NumberFormatException e) {
             e.printStackTrace();
@@ -267,16 +341,29 @@ public class CMClientApp {
 
         for(int i = 0; i < nFileNum; i++)
         {
+            String[] filePaths = strFiles[i].split("/");
+            String fileName = filePaths[filePaths.length-1];//더미이벤트에 실어서 보낼 파일 이름
+
             bReturn = CMFileTransferManager.pushFile(strFiles[i], strTarget, m_clientStub.getCMInfo());
             if(!bReturn)
                 System.err.println("Request file error! file("+strFiles[i]+"), owner("+strTarget+").");
             else
+            {
+                //성공했다고 출력
                 System.out.println(Integer.toString(i + 1) + "/" + Integer.toString(nFileNum) + " success");
+
+                //더미이벤트 보내기
+                CMDummyEvent due = new CMDummyEvent();
+                due.setID(106);
+                due.setDummyInfo(fileName + " " + strReceiver);
+                m_clientStub.send(due, m_clientStub.getDefaultServerName());
+            }
         }
 
         System.out.println("======");
         return;
     }
+
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -346,7 +433,11 @@ public class CMClientApp {
                     client.SendMultipleFiles();
                     break;
                 case 105: //이상 탐지
-
+                    client.Synchronization();
+                    break;
+                case 106:
+                    client.ShareMultipleFiles();
+                    break;
                 default:
                     System.err.println("Unknown command.");
                     break;
