@@ -10,10 +10,9 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.Scanner;
 import javax.swing.text.*;
 
-public class ConsoleGUI extends JFrame {
+public class CMWinClientApp extends JFrame {
     //UI관련 멤버 변수들
     private JTextPane consoleTextPane;
     private JTextArea inputTextArea;
@@ -30,14 +29,14 @@ public class ConsoleGUI extends JFrame {
 
 
 
-    public ConsoleGUI() {
-        setTitle("Console");
+    public CMWinClientApp() {
+        setTitle("Client");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         consoleTextPane = new JTextPane();
         consoleTextPane.setEditable(false);
 
-        // JTextPane에 스크롤 기능 추가
+        // 스크롤 기능
         JScrollPane consoleScrollPane = new JScrollPane(consoleTextPane);
 
         inputTextArea = new JTextArea();
@@ -67,8 +66,6 @@ public class ConsoleGUI extends JFrame {
         add(mainPanel);
 
         // 콘솔 출력을 JTextPane으로 재지정
-
-
         consolePrintStream = new PrintStream(new ConsoleOutputStream(consoleTextPane));
         System.setOut(consolePrintStream);
         //System.setErr(consolePrintStream);
@@ -501,7 +498,7 @@ public class ConsoleGUI extends JFrame {
 
     public static void main(String[] args) {
 
-        ConsoleGUI client = new ConsoleGUI();
+        CMWinClientApp client = new CMWinClientApp();
         SwingUtilities.invokeLater(
                 new Runnable() {
                     public void run()
@@ -584,7 +581,6 @@ public class ConsoleGUI extends JFrame {
         }
 }
 
-// 콘솔 출력을 JTextPane으로 전달하기 위한 OutputStream
 class ConsoleOutputStream extends OutputStream {
     private JTextPane textPane;
     private Document document;

@@ -5,18 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0ea75927-325f-4cdc-b02c-a1ea0fd9ebd2" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/ConsoleGUI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cm-client.conf" beforeDir="false" afterPath="$PROJECT_DIR$/cm-client.conf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cm-server.conf" beforeDir="false" afterPath="$PROJECT_DIR$/cm-server.conf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server-file-path/100/dog.4.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server-file-path/100/throughput-test.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/CMClientApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/CMClientApp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/CMClientEventHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/CMClientEventHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/CMServerEventHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/CMServerEventHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/CMClientApp.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/CMClientApp.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/CMClientEventHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/CMClientEventHandler.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/CMServerEventHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/CMServerEventHandler.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/ConsoleGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/CMWinClientApp.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,9 +57,16 @@
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.ConsoleGUI (2)">
+  <component name="RunManager" selected="Application.CMWinClientApp">
     <configuration name="CMServerApp" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="CMServerApp" />
+      <module name="CMApp" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="CMWinClientApp" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="CMWinClientApp" />
       <module name="CMApp" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -89,13 +86,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="ConsoleGUI (4)" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="ConsoleGUI" />
-      <module name="CMApp" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="ConsoleGUI" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="ConsoleGUI" />
       <module name="CMApp" />
@@ -104,19 +94,19 @@
       </method>
     </configuration>
     <list>
+      <item itemvalue="Application.CMWinClientApp" />
       <item itemvalue="Application.ConsoleGUI (1)" />
       <item itemvalue="Application.CMServerApp" />
       <item itemvalue="Application.ConsoleGUI" />
       <item itemvalue="Application.ConsoleGUI (2)" />
-      <item itemvalue="Application.ConsoleGUI (4)" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.CMWinClientApp" />
+        <item itemvalue="Application.CMServerApp" />
         <item itemvalue="Application.ConsoleGUI (2)" />
         <item itemvalue="Application.ConsoleGUI (1)" />
-        <item itemvalue="Application.CMServerApp" />
         <item itemvalue="Application.ConsoleGUI" />
-        <item itemvalue="Application.ConsoleGUI (4)" />
       </list>
     </recent_temporary>
   </component>
@@ -220,7 +210,14 @@
       <option name="project" value="LOCAL" />
       <updated>1685215974219</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="5/31 commit">
+      <created>1685536173954</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1685536173955</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -231,7 +228,8 @@
     <MESSAGE value="4/15 commit" />
     <MESSAGE value="5/27 commit" />
     <MESSAGE value="5/28 commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="5/28 commit" />
+    <MESSAGE value="5/31 commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="5/31 commit" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
