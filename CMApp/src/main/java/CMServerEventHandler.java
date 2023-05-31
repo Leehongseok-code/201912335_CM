@@ -3,6 +3,7 @@ import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.*;
 import kr.ac.konkuk.ccslab.cm.event.*;
 import kr.ac.konkuk.ccslab.cm.event.handler.CMAppEventHandler;
 import kr.ac.konkuk.ccslab.cm.info.*;
@@ -15,10 +16,15 @@ public class CMServerEventHandler implements CMAppEventHandler {
     private CMServerStub m_serverStub;
     private boolean m_bDistFileProc;	// for distributed file processing
 
+    HashMap<String, HashMap<String, String>> shareMap; //<파일명, 공유중안 사용자> 쌍
+
     public CMServerEventHandler(CMServerStub serverStub)
     {
         m_serverStub = serverStub;
+        shareMap = new HashMap<String, HashMap<String, String>>();//{보내는사람: {파일이름:공유받을사람}}
+
     }
+
 
     public void processEvent(CMEvent cme)
     {
@@ -97,6 +103,8 @@ public class CMServerEventHandler implements CMAppEventHandler {
     private void processFileEvent(CMEvent cme)
     {
         CMFileEvent fe = (CMFileEvent) cme;
+
+
         switch(fe.getID())
         {
             case CMFileEvent.REQUEST_PERMIT_PULL_FILE:
@@ -273,6 +281,15 @@ public class CMServerEventHandler implements CMAppEventHandler {
         {
             if(strClientList.contains(strServerFiles[i])==false)
             {
+                //동기화 요청한 client에서 삭제된 파일은 서버에서도 삭제
+                String absServerFile = fileServerDir + "/" + strServerFiles[i];
+                System.out.println("delete: " + absServerFile);
+                File file = new File(absServerFile);
+                file.delete();
+            }
+            else
+            {
+                //추후에 수정된 파일만 지우고 다시보내게끔 elseif로 고치면 됨!
                 String absServerFile = fileServerDir + "/" + strServerFiles[i];
                 System.out.println("delete: " + absServerFile);
                 File file = new File(absServerFile);
@@ -280,8 +297,6 @@ public class CMServerEventHandler implements CMAppEventHandler {
             }
         }
 
-        //due.setDummyInfo("dummy~");
-        //m_serverStub.send(due,m_serverStub.getDefaultServerName());
         return ;
     }
 
@@ -298,15 +313,32 @@ public class CMServerEventHandler implements CMAppEventHandler {
         fileName = commands[0];
         strTarget = commands[1];
 
+        //파일을 전송하기 전에 전송받을 파일명을 클라이언트에게 미리 알려, 업데이트된 파일을 지우도록 지시(나중에 더미메시지에 업데이트날짜도 실어보내야됨)
+        CMDummyEvent newDue = new CMDummyEvent();
+        newDue.setID(106);
+        newDue.setDummyInfo(fileName);
+        m_serverStub.send(newDue, strTarget);
+
         strFile = "./server-file-path/" + sender + "/" + fileName;//
+        System.out.println(strFile);
 
         boolean bReturn = false;
         bReturn = CMFileTransferManager.pushFile(strFile, strTarget, m_serverStub.getCMInfo());
+        //bReturn = m_serverStub.pushFile(strFile, strTarget, CMInfo.FILE_OVERWRITE);
         if(!bReturn)
             System.err.println("Request file error!");
         else
             System.out.println("file success");
         return ;
+    }
+
+    void DeleteFile(String strFile)
+    {
+        String fileClientDir = "./server-file-path";
+        String absServerFile = fileClientDir + "/" + strFile;
+        System.out.println("delete: " + absServerFile);
+        File file = new File(absServerFile);
+        file.delete();
     }
 
 }

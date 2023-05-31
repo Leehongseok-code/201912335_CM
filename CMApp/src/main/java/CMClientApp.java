@@ -3,14 +3,19 @@ import kr.ac.konkuk.ccslab.cm.event.handler.CMAppEventHandler;
 import kr.ac.konkuk.ccslab.cm.info.*;
 import kr.ac.konkuk.ccslab.cm.stub.*;
 
+
 import java.io.File;
 import java.io.BufferedReader;
 import java.io.Console;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.*;
+import java.lang.Thread;
+import java.util.HashMap;
 import java.util.Scanner;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import kr.ac.konkuk.ccslab.cm.manager.*;
 import kr.ac.konkuk.ccslab.cm.event.CMDummyEvent;
 
@@ -19,10 +24,13 @@ public class CMClientApp {
     private CMClientStub m_clientStub;
     private CMClientEventHandler m_eventHandler;
 
+    HashMap<String, String> shareMap;
+
     public CMClientApp()
     {
         m_clientStub = new CMClientStub();
         m_eventHandler = new CMClientEventHandler(m_clientStub);
+        shareMap = new HashMap<String, String>(); //<파일명, 유저명>
     }
 
     public CMClientStub getClientStub()
@@ -236,6 +244,9 @@ public class CMClientApp {
         String strFileList = null;
         int nFileNum = -1;
         String strTarget = null;
+
+
+
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("====== Synchronize files");
         try {
@@ -248,7 +259,7 @@ public class CMClientApp {
             fileDir = br.readLine();//전송할 루트 폴더
 
             File dir = new File(fileDir);
-            strFiles = dir.list();
+            strFiles = dir.list();//파일 이름만을 저장한 리스트
             absFiles = strFiles.clone();//절대경로 저장할 리스트를 따로 분리
             nFileNum = strFiles.length;
 
@@ -268,10 +279,11 @@ public class CMClientApp {
             return;
         }
 
-        /*
-        strFileList.trim();
-        strFiles = strFileList.split("\\s+");
-        */
+        //동기화 메시지를 먼저 보내기
+        CMDummyEvent due = new CMDummyEvent();
+        due.setID(105);
+        due.setDummyInfo(String.join(" ", strFiles));//동기화시킬 파일들의 목록을 공백으로 구분하여 전송
+        m_clientStub.send(due,m_clientStub.getDefaultServerName());
 
         if(strFiles.length != nFileNum)
         {
@@ -281,19 +293,45 @@ public class CMClientApp {
 
         for(int i = 0; i < nFileNum; i++)
         {
+            //서버랑 동기화 하는 부분
             bReturn = CMFileTransferManager.pushFile(absFiles[i], strTarget, m_clientStub.getCMInfo());
             if(!bReturn)
+            {
                 System.err.println("Request file error! file("+strFiles[i]+"), owner("+strTarget+").");
+            }
             else
+            {
                 System.out.println(Integer.toString(i + 1) + "/" + Integer.toString(nFileNum) + " success");
+            }
+
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+
+            //공유중인 사용자가 있다면 사용자에게 공유하는 이벤트 또한 전송
+            String strReceiver = shareMap.get(strFiles[i]);
+            if(strReceiver != null)
+            {
+                System.out.println("Sharing user exists: " + strReceiver);
+                due = new CMDummyEvent();
+                due.setID(106);
+                due.setDummyInfo(strFiles[i] + " " + strReceiver);
+                m_clientStub.send(due, m_clientStub.getDefaultServerName());
+            }
+            else
+            {
+                System.out.println("There is no user sharing file: " + strFiles[i]);
+            }
+
         }
 
         System.out.println("======");
 
-        CMDummyEvent due = new CMDummyEvent();
-        due.setID(105);
-        due.setDummyInfo(String.join(" ", strFiles));
-        m_clientStub.send(due,m_clientStub.getDefaultServerName());
+
         return;
     }
 
@@ -344,7 +382,8 @@ public class CMClientApp {
             String[] filePaths = strFiles[i].split("/");
             String fileName = filePaths[filePaths.length-1];//더미이벤트에 실어서 보낼 파일 이름
 
-            bReturn = CMFileTransferManager.pushFile(strFiles[i], strTarget, m_clientStub.getCMInfo());
+            //bReturn = CMFileTransferManager.pushFile(strFiles[i], strTarget, m_clientStub.getCMInfo());
+            bReturn = m_clientStub.pushFile(strFiles[i], strTarget, CMInfo.FILE_OVERWRITE);
             if(!bReturn)
                 System.err.println("Request file error! file("+strFiles[i]+"), owner("+strTarget+").");
             else
@@ -357,6 +396,10 @@ public class CMClientApp {
                 due.setID(106);
                 due.setDummyInfo(fileName + " " + strReceiver);
                 m_clientStub.send(due, m_clientStub.getDefaultServerName());
+
+                //공유된 파일과 사용자명을 테이블에 저장
+                shareMap.put(fileName, strReceiver);
+                System.out.println("Successfully make link with " + strReceiver);
             }
         }
 

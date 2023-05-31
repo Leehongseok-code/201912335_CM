@@ -34,6 +34,8 @@ public class CMClientEventHandler implements CMAppEventHandler {
             case CMInfo.CM_FILE_EVENT:
                 processFileEvent(cme);
                 break;
+            case CMInfo.CM_DUMMY_EVENT:
+                processShareFile(cme);
             default:
                 return;
         }
@@ -120,6 +122,10 @@ public class CMClientEventHandler implements CMAppEventHandler {
                 strReqBuf.append("["+fe.getFileSender()+"] wants to send a file.\n");
                 strReqBuf.append("file path: "+fe.getFilePath()+"\n");
                 strReqBuf.append("file size: "+fe.getFileSize()+"\n");
+
+                //String[] FileNames = fe.getFilePath().split("/");
+                //DeleteFile(FileNames[FileNames.length-1]);
+
                 System.out.print(strReqBuf.toString());
                 nOption = JOptionPane.showConfirmDialog(null, strReqBuf.toString(),
                         "Push File", JOptionPane.YES_NO_OPTION);
@@ -140,6 +146,7 @@ public class CMClientEventHandler implements CMAppEventHandler {
                 }
                 break;
             case CMFileEvent.START_FILE_TRANSFER:
+
             case CMFileEvent.START_FILE_TRANSFER_CHAN:
                 System.out.println("["+fe.getFileSender()+"] is about to send file("+fe.getFileName()+").");
                 break;
@@ -211,6 +218,17 @@ public class CMClientEventHandler implements CMAppEventHandler {
         return;
     }
 
+    void processShareFile(CMEvent cme)
+    {
+        CMDummyEvent due = (CMDummyEvent)cme;
+
+        String strFile = due.getDummyInfo();
+        String fileClientDir = "./client-file-path";
+        String absServerFile = fileClientDir + "/" + strFile;
+        System.out.println("delete: " + absServerFile);
+        File file = new File(absServerFile);
+        file.delete();
+    }
 
 
 }
