@@ -5,6 +5,7 @@ import kr.ac.konkuk.ccslab.cm.stub.*;
 import kr.ac.konkuk.ccslab.cm.manager.CMFileTransferManager;
 import kr.ac.konkuk.ccslab.cm.event.CMFileEvent;
 import java.io.*;
+import java.util.HashMap;
 import javax.swing.JOptionPane;
 
 public class CMClientEventHandler implements CMAppEventHandler {
@@ -16,9 +17,18 @@ public class CMClientEventHandler implements CMAppEventHandler {
     private String m_strExt;			// for distributed file processing
     private String[] m_filePieces;		// for distributed file processing
 
+
+    HashMap<String, String> shareMap;
+    HashMap<String, Integer> logicalClock;
+
+    String fileDir = null;
+
     public CMClientEventHandler(CMClientStub clientStub)
     {
         m_clientStub = clientStub;
+        shareMap = new HashMap<String, String>(); //<파일명, 유저명>
+        logicalClock = new HashMap<String, Integer>();
+        fileDir = "";
     }
 
     public void processEvent(CMEvent cme)
@@ -35,7 +45,18 @@ public class CMClientEventHandler implements CMAppEventHandler {
                 processFileEvent(cme);
                 break;
             case CMInfo.CM_DUMMY_EVENT:
+            if (cme.getID() == 106)
+            {
                 processShareFile(cme);
+            }
+            else if(cme.getID() == 105)
+            {
+                processSyncEvent(cme);
+            }
+            else if(cme.getID() == 108)
+            {
+                processLinkEvent(cme);
+            }
             default:
                 return;
         }
@@ -218,17 +239,62 @@ public class CMClientEventHandler implements CMAppEventHandler {
         return;
     }
 
+    void processSyncEvent(CMEvent cme)
+    {
+        CMDummyEvent due = (CMDummyEvent)cme;
+        String message = due.getDummyInfo();
+        String[] strFiles  = message.split(" ");
+        int nFileNum = strFiles.length;
+        boolean bReturn = false;
+
+        if(message.equals(""))
+        {
+            nFileNum = 0;
+        }
+
+        for(int i = 0; i < nFileNum; i++)
+        {
+            String strTarget = m_clientStub.getDefaultServerName();
+            String absFile = fileDir + "/" + strFiles[i];
+            bReturn = CMFileTransferManager.pushFile(absFile, strTarget, m_clientStub.getCMInfo());
+            if(!bReturn)
+            {
+                System.err.println("Request file error! file("+strFiles[i]+"), owner("+strTarget+").");
+            }
+            else
+            {
+                //System.out.println(Integer.toString(i + 1) + "/" + Integer.toString(nFileNum) + " success");
+            }
+
+
+        }
+    }
+
+    void processLinkEvent(CMEvent cme)
+    {
+        CMDummyEvent due = (CMDummyEvent)cme;
+        String message = due.getDummyInfo();
+        String[] tempStr = message.split(" ");
+        String sender = tempStr[0];
+        String strFile = tempStr[1];
+        shareMap.put(sender, strFile);
+    }
     void processShareFile(CMEvent cme)
     {
         CMDummyEvent due = (CMDummyEvent)cme;
 
-        String strFile = due.getDummyInfo();
+        String[] fileClock = due.getDummyInfo().split(":");
+        String strFile = fileClock[0];
+        //logical clock을 메시지로 받고, 공유받은 logical clock 정보로 업데이트
+        int clock = Integer.parseInt(fileClock[1]);
+
+        logicalClock.put(strFile, clock);
+        System.out.println("strFile clock updated: " + clock);
+
         String fileClientDir = "./client-file-path";
         String absServerFile = fileClientDir + "/" + strFile;
         System.out.println("delete: " + absServerFile);
         File file = new File(absServerFile);
         file.delete();
     }
-
-
 }

@@ -3,13 +3,17 @@ import kr.ac.konkuk.ccslab.cm.info.CMInfo;
 import kr.ac.konkuk.ccslab.cm.manager.CMFileTransferManager;
 import kr.ac.konkuk.ccslab.cm.stub.CMClientStub;
 
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Arrays;
 import javax.swing.text.*;
 
 public class CMWinClientApp extends JFrame {
@@ -23,11 +27,18 @@ public class CMWinClientApp extends JFrame {
     private CMClientStub m_clientStub;
     private CMClientEventHandler m_eventHandler;
 
+    public JTextArea fileTextArea;
+    public JTextArea fileInputTextArea;
+
     long lastSyncTime = -1;
 
     HashMap<String, String> shareMap;
+    HashMap<String, Integer> logicalClock;
 
+    List<String> deletedFilesList;
+    List<String> newFilesList;
 
+    String[] lastFiles;
 
     public CMWinClientApp() {
         setTitle("Client");
@@ -43,6 +54,12 @@ public class CMWinClientApp extends JFrame {
         JScrollPane inputScrollPane = new JScrollPane(inputTextArea);
         inputTextArea.setRows(2);
 
+        fileTextArea = new JTextArea();
+        fileTextArea.setEditable(false);
+
+        fileInputTextArea = new JTextArea();
+        fileInputTextArea.setRows(2);
+
         JButton submitButton = new JButton("Submit");
         submitButton.addActionListener(new ActionListener() {
             @Override
@@ -54,13 +71,43 @@ public class CMWinClientApp extends JFrame {
             }
         });
 
+        JButton fileSubmitButton = new JButton("FileSubmit");
+        fileSubmitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String strFile = fileInputTextArea.getText();
+                File file = new File(strFile);
+                String[] strServerFiles = file.list();
+                int nFiles = strServerFiles.length;
+                fileTextArea.setText("");
+                for(int i = 0; i < nFiles; i++)
+                {
+                    fileTextArea.append(strServerFiles[i]);
+                    fileTextArea.append("\n");
+                }
+            }
+        });
+
 
         JPanel inputPanel = new JPanel(new BorderLayout());
         inputPanel.add(inputScrollPane, BorderLayout.CENTER);
         inputPanel.add(submitButton, BorderLayout.EAST);
 
+
+        JPanel fileInputPanel = new JPanel(new BorderLayout());
+        fileInputPanel.add(new JScrollPane(fileInputTextArea), BorderLayout.CENTER);
+        fileInputPanel.add(fileSubmitButton, BorderLayout.EAST);
+
+        JPanel filePane = new JPanel(new BorderLayout());
+        filePane.add(fileTextArea, BorderLayout.CENTER);
+        filePane.add(fileInputPanel, BorderLayout.SOUTH);
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, consoleScrollPane, filePane);
+        splitPane.setResizeWeight(0.5);
+
         JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add(consoleScrollPane, BorderLayout.CENTER);
+        mainPanel.add(splitPane, BorderLayout.CENTER);
+        //mainPanel.add(consoleScrollPane, BorderLayout.CENTER);
         mainPanel.add(inputPanel, BorderLayout.SOUTH);
 
         add(mainPanel);
@@ -77,7 +124,11 @@ public class CMWinClientApp extends JFrame {
         //실질적 기능을 하는 부분
         m_clientStub = new CMClientStub();
         m_eventHandler = new CMClientEventHandler(m_clientStub);
-        shareMap = new HashMap<String, String>(); //<파일명, 유저명>
+
+        logicalClock = m_eventHandler.logicalClock;
+        shareMap = m_eventHandler.shareMap;
+
+        lastFiles = new String[0];
     }
 
     public CMClientStub getClientStub()
@@ -328,25 +379,90 @@ public class CMWinClientApp extends JFrame {
         strTarget = m_clientStub.getDefaultServerName();
 
         fileDir = fileDirField.getText();
+        m_eventHandler.fileDir = fileDir;
+
 
         File dir = new File(fileDir);
+
         strFiles = dir.list();//파일 이름만을 저장한 리스트
-        nFileNum = strFiles.length;
+
+        System.out.println(strFiles[0]);
+
+        if(strFiles == null)
+            nFileNum = 0;
+        else
+            nFileNum = strFiles.length;
+
+        List<String> lastFilesList = new ArrayList<>(Arrays.asList(lastFiles));
+        List<String> strFilesList = new ArrayList<>(Arrays.asList(strFiles));
+        deletedFilesList = new ArrayList<>();
+        newFilesList = new ArrayList<>();
+        //새로 생성(복사된 경우 lastModified로 잡히지 않음)
+        for(int i = 0; i < strFilesList.size(); i++)
+        {
+            String strFile = strFilesList.get(i);
+            //마지막 업데이트 파일에는 없고 현재 파일 리스트에는 있는 생성으로 간주
+            if(lastFilesList.contains(strFile)==false)
+            {
+                System.out.println(strFile + " was created");
+                newFilesList.add(strFile);
+            }
+        }
+
+        //삭제된 파일 detection
+        for(int i = 0; i < lastFilesList.size(); i++)
+        {
+            String lastFile = lastFilesList.get(i);
+            //마지막 업데이트 파일에만 있고 현재 파일 리스트에는 없는 파일은 삭제
+            if(strFilesList.contains(lastFile)==false)
+            {
+                System.out.println(lastFile + " was deleted");
+                deletedFilesList.add(lastFile);
+            }
+        }
+        //지워야 할 파일 목록 한 번 전송
+        CMDummyEvent due = new CMDummyEvent();
+        due.setID(107);
+        due.setDummyInfo(String.join(" ", strFilesList));
+        //due.setDummyInfo(String.join(" ", deletedFilesList));//동기화시킬 파일들의 목록을 공백으로 구분하여 전송
+        //System.out.println(String.join(" ", deletedFilesList));
+        m_clientStub.send(due, m_clientStub.getDefaultServerName());
+
+        //클라이언트의 최종 파일 상태를 저장(toArray를 더 작은 사이즈로 하면 )
+        lastFiles = strFilesList.toArray(new String[0]);
+        System.out.println("Delete completed");
         //absFiles = strFiles.clone();//절대경로 저장할 리스트를 따로 분리
+
         absFiles = new String[nFileNum];
 
+        for(int i = 0; i < nFileNum; i++)
+        {
+            absFiles[i] = " ";
+        }
 
-        System.out.println("====== Synchronize files");
+        System.out.println("====== Synchronize files =====");
 
         for(int i = 0; i < nFileNum; i++)
         {
             String tempAbsFile = fileDir + '/' + strFiles[i];
             File tempFile = new File(tempAbsFile);
-            if(lastSyncTime < tempFile.lastModified())
+            if(lastSyncTime < tempFile.lastModified() || newFilesList.contains(strFiles[i]))
             {
                 absFiles[i] = tempAbsFile;
                 System.out.println(strFiles[i] + " update detected");
+
+                //처음 Update된 파일은 logicalClock값을 1로 설정
+                if(logicalClock.getOrDefault(strFiles[i], 0) == 0)
+                {
+                    System.out.println(strFiles[i] + " logical clock updated");
+                    logicalClock.put(strFiles[i], 1);
+                }
+                //Update된 파일은 logicalClock값을 1 증가
+                else
+                    logicalClock.put(strFiles[i], logicalClock.get(strFiles[i]) + 1);
+
             }
+
             else
             {
                 System.out.println(strFiles[i] + " was not updated");
@@ -355,13 +471,6 @@ public class CMWinClientApp extends JFrame {
 
         System.out.println("Number of files: " + nFileNum);
 
-
-        //동기화 메시지를 먼저 보내기
-        CMDummyEvent due = new CMDummyEvent();
-        due.setID(105);
-        due.setDummyInfo(String.join(" ", strFiles));//동기화시킬 파일들의 목록을 공백으로 구분하여 전송
-        m_clientStub.send(due,m_clientStub.getDefaultServerName());
-
         if(strFiles.length != nFileNum)
         {
             System.out.println("The number of files incorrect!");
@@ -369,14 +478,39 @@ public class CMWinClientApp extends JFrame {
         }
 
         nFileNum = absFiles.length;
-
+        //System.out.println("nFileNum: " + nFileNum);
+        //동기화 메시지를 먼저 보내기
+        //CMDummyEvent due = new CMDummyEvent();
+        due = new CMDummyEvent();
+        due.setID(105);
+        //String[] fullMessage = new String[nFileNum];
+        List<String> fullMessage = new ArrayList<String>();
         for(int i = 0; i < nFileNum; i++)
         {
-            if(absFiles[i] == null)
+            //System.out.println("isEmpty: " + absFiles[i].equals(" "));
+            if(absFiles[i].equals(" "))
+                continue;
+            String[] tempStrFile = absFiles[i].split("/");
+            String strFile = tempStrFile[tempStrFile.length-1];
+            //fullMessage[i] = strFile  + ":" + logicalClock.get(strFiles[i]);
+            fullMessage.add(strFile  + ":" + logicalClock.get(strFiles[i]));
+            //System.out.println(fullMessage[i]);
+        }
+        //due.setDummyInfo(String.join(" ", strFiles));//동기화시킬 파일들의 목록을 공백으로 구분하여 전송
+        due.setDummyInfo(String.join(" ", fullMessage));//동기화시킬 파일들의 목록을 공백으로 구분하여 전송
+        System.out.println(String.join(" ", fullMessage));
+        m_clientStub.send(due, m_clientStub.getDefaultServerName());
+
+
+        //실제 동기화 허용된 파일들 기준으로 전송하는 부분
+        for(int i = 0; i < nFileNum; i++)
+        {
+            /*
+            if(absFiles[i].equals(" "))
             {
                 continue;
             }
-
+            System.out.println(i + ":" + absFiles[i]);
             //서버랑 동기화 하는 부분
             bReturn = CMFileTransferManager.pushFile(absFiles[i], strTarget, m_clientStub.getCMInfo());
             if(!bReturn)
@@ -385,8 +519,9 @@ public class CMWinClientApp extends JFrame {
             }
             else
             {
-                System.out.println(Integer.toString(i + 1) + "/" + Integer.toString(nFileNum) + " success");
+                //System.out.println(Integer.toString(i + 1) + "/" + Integer.toString(nFileNum) + " success");
             }
+            */
 
             try {
                 Thread.sleep(1000);
@@ -401,6 +536,7 @@ public class CMWinClientApp extends JFrame {
                 System.out.println("Sharing user exists: " + strReceiver);
                 due = new CMDummyEvent();
                 due.setID(106);
+
                 due.setDummyInfo(strFiles[i] + " " + strReceiver);
                 m_clientStub.send(due, m_clientStub.getDefaultServerName());
             }
@@ -408,6 +544,7 @@ public class CMWinClientApp extends JFrame {
             {
                 System.out.println("There is no user sharing file: " + strFiles[i]);
             }
+
 
         }
 
@@ -446,7 +583,10 @@ public class CMWinClientApp extends JFrame {
 
 
         strReceiver = receiverField.getText();
-        nFileNum = Integer.parseInt(nFileNumField.getText());
+        String numText = nFileNumField.getText();
+        if(numText.isEmpty())
+            return ;
+        nFileNum = Integer.parseInt(numText);
         strFileList = filePathField.getText();
 
         if(strReceiver.isEmpty())
@@ -508,7 +648,7 @@ public class CMWinClientApp extends JFrame {
         );
 
         // 예시 콘솔 출력
-        System.out.println("Hello, world!");
+        System.out.println("Hello, Client!");
 
 
         CMClientStub clientStub = client.getClientStub();

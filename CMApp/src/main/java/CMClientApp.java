@@ -305,12 +305,6 @@ public class CMClientApp {
             }
 
 
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
 
             //공유중인 사용자가 있다면 사용자에게 공유하는 이벤트 또한 전송
             String strReceiver = shareMap.get(strFiles[i]);
