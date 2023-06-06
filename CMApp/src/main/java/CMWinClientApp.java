@@ -71,7 +71,7 @@ public class CMWinClientApp extends JFrame {
             }
         });
 
-        JButton fileSubmitButton = new JButton("FileSubmit");
+        JButton fileSubmitButton = new JButton("Preview");
         fileSubmitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -177,7 +177,7 @@ public class CMWinClientApp extends JFrame {
             if (bRequestResult)
             {
                 System.out.print("user name: " + strUserName);
-                System.out.println("successfully sent the login request.");
+                System.out.println(" successfully sent the login request.");
             }
             else
                 System.err.println("failed the login request!");
@@ -364,7 +364,7 @@ public class CMWinClientApp extends JFrame {
         Object[] message = {
                 "Directory Path:", fileDirField
         };
-        int option = JOptionPane.showConfirmDialog(null, message, "Synchronization", JOptionPane.OK_CANCEL_OPTION);
+        //int option = JOptionPane.showConfirmDialog(null, message, "Synchronization", JOptionPane.OK_CANCEL_OPTION);
 
         boolean bReturn = false;
         String[] strFiles = null;
@@ -378,7 +378,12 @@ public class CMWinClientApp extends JFrame {
 
         strTarget = m_clientStub.getDefaultServerName();
 
+        /*
         fileDir = fileDirField.getText();
+        m_eventHandler.fileDir = fileDir;
+         */
+
+        fileDir = fileInputTextArea.getText();
         m_eventHandler.fileDir = fileDir;
 
 
@@ -554,6 +559,8 @@ public class CMWinClientApp extends JFrame {
 
         return;
     }
+
+
 
     public void ShareMultipleFiles()
     {

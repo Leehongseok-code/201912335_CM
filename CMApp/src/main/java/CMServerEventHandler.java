@@ -289,8 +289,8 @@ public class CMServerEventHandler implements CMAppEventHandler {
         //만약 보낼 파일이 없다면, nClientFileNum을 0으로 세팅
         if(strClientFileList.equals(""))
             nClientFileNum = 0 ;
-        System.out.println("n: " + nClientFileNum);
-        System.out.println("isEmpty: " + strClientFileList.equals(""));
+        //System.out.println("n: " + nClientFileNum);
+        //System.out.println("isEmpty: " + strClientFileList.equals(""));
         List<String> acceptedFilesList = new ArrayList<String>();//동기화해도 되는 파일 목록
         List<String> strClientList = new ArrayList<>();
         //클라이언트에서 받아온 요청 메시지 파싱
@@ -376,7 +376,6 @@ public class CMServerEventHandler implements CMAppEventHandler {
 
         CMDummyEvent newDue = new CMDummyEvent();
         newDue.setID(106);
-        //newDue.setDummyInfo(fileName);
         newDue.setDummyInfo(fileClock);
         m_serverStub.send(newDue, strTarget);
 
