@@ -9,7 +9,7 @@ CM (version v2.6.7 ~) user guide document is available at the link: (https://sit
 Copyright (c) 2009-present Collaborative Computing Systems Lab. (CCSLab.), Konkuk University, Korea
 
 # Custom Functions
-아래 링크를 통해 custom function에 접근할 수 있습니다.
+분산시스템 텀프로젝트 Repository이며, 아래 링크를 통해 구현한 custom function에 접근할 수 있습니다.
 
 This project includes CM Library Functions and custom function made by Leehongseok-code
 You can test my custom functions include file synchronization, file transmissions, etc.
