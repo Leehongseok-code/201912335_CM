@@ -16,9 +16,7 @@ You can test my custom functions include file synchronization, file transmission
 
 https://github.com/Leehongseok-code/201912335_CM/tree/work/CMApp/src/main/java
 
-실행 방법
-
-CMServerApp.java 프로세스를 켠 상태로 CMClientApp.java를 여러 개 실행
+실행 방법: CMServerApp.java 프로세스를 켠 상태로 CMClientApp.java를 여러 개 실행
 
 시연 영상 링크
 
